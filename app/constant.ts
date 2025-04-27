@@ -487,51 +487,52 @@ export const EXCLUDE_VISION_MODEL_REGEXES = [/claude-3-5-haiku-20241022/];
 const openaiModels = [
   // As of July 2024, gpt-4o-mini should be used in place of gpt-3.5-turbo,
   // as it is cheaper, more capable, multimodal, and just as fast. gpt-3.5-turbo is still available for use in the API.
-  
+  shisa-ai/shisa-v2-llama3.3-70b:free"
 ];
 
 const googleModels = [
- 
+ "google/gemma-3-27b-it:free"
 ];
 
 const anthropicModels = [
-  
+  "qwen/qwen-2.5-vl-7b-instruct:free"
 ];
 
 const baiduModels = [
- 
+ "meta-llama/llama-3.2-11b-vision-instruct:free"
 ];
 
 const bytedanceModels = [
-  
+  "cognitivecomputations/dolphin3.0-mistral-24b:free"
 ];
 
 const alibabaModes = [
-  
+  "qwen/qwq-32b:free",
+  "qwen/qwen2.5-vl-72b-instruct:free"
 ];
 
 const tencentModels = [
-  
+  "mistralai/mistral-small-24b-instruct-2501:free"
 ];
 
-const moonshotModes = ["moonshot-v1-8k", "moonshot-v1-32k", "moonshot-v1-128k"];
+const moonshotModes = ["moonshotai/moonlight-16b-a3b-instruct:free"];
 
 const iflytekModels = [
-  
+  "cognitivecomputations/dolphin3.0-r1-mistral-24b:free"
 ];
 
-const deepseekModels = ["deepseek-chat", "deepseek-coder", "deepseek-reasoner"];
+const deepseekModels = [ "deepseek/deepseek-chat:free", "deepseek-coder", "deepseek-reasoner"];
 
 const xAIModes = [
-  
+  "meta-llama/llama-3.2-11b-vision-instruct:free"
 ];
 
 const chatglmModels = [
-  
+  "meta-llama/llama-4-scout:free"
 ];
 
 const siliconflowModels = [
-  
+  "nvidia/llama-3.3-nemotron-super-49b-v1:free"
 ];
 
 let seq = 1000; // 内置的模型序号生成器从1000开始
