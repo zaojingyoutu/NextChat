@@ -271,6 +271,11 @@ export const SiliconFlow = {
   ListModelPath: "v1/models?&sub_type=chat",
 };
 
+export const OpenRouter = {
+  ExampleEndpoint: OPENROUTER_BASE_URL,
+  ChatPath: "/api/v1",
+};
+
 export const DEFAULT_INPUT_TEMPLATE = `{{input}}`; // input / time / model / lang
 // export const DEFAULT_SYSTEM_TEMPLATE = `
 // You are ChatGPT, a large language model trained by {{ServiceProvider}}.
@@ -590,11 +595,8 @@ async function fetchFreeModels(): Promise<Model[]> {
   }
 }
 
-// 使用示例
-(async () => {
-  const DEFAULT_MODELS = await fetchFreeModels();
-})();
 
+export const DEFAULT_MODELS = fetchFreeModels()
 // export const DEFAULT_MODELS = [
 //   ...openaiModels.map((name) => ({
 //     name,
