@@ -35,6 +35,8 @@ export const XAI_BASE_URL = "https://api.x.ai";
 export const CHATGLM_BASE_URL = "https://open.bigmodel.cn";
 
 export const SILICONFLOW_BASE_URL = "https://api.siliconflow.cn";
+export const OPENROUTER_BASE_URL = "https://openrouter.ai";
+
 
 export const CACHE_URL_PREFIX = "/api/cache";
 export const UPLOAD_URL = `${CACHE_URL_PREFIX}/upload`;
@@ -72,6 +74,7 @@ export enum ApiPath {
   ChatGLM = "/api/chatglm",
   DeepSeek = "/api/deepseek",
   SiliconFlow = "/api/siliconflow",
+  OpenRouter = "/api/v1"
 }
 
 export enum SlotID {
@@ -130,6 +133,7 @@ export enum ServiceProvider {
   ChatGLM = "ChatGLM",
   DeepSeek = "DeepSeek",
   SiliconFlow = "SiliconFlow",
+  OpenRouter = "OpenRouter"
 }
 
 // Google API safety settings, see https://ai.google.dev/gemini-api/docs/safety-settings
@@ -156,6 +160,7 @@ export enum ModelProvider {
   ChatGLM = "ChatGLM",
   DeepSeek = "DeepSeek",
   SiliconFlow = "SiliconFlow",
+  OpenRouter = "OpenRouter"
 }
 
 export const Stability = {
@@ -536,162 +541,216 @@ const siliconflowModels = [
 ];
 
 let seq = 1000; // 内置的模型序号生成器从1000开始
-export const DEFAULT_MODELS = [
-  ...openaiModels.map((name) => ({
-    name,
-    available: true,
-    sorted: seq++, // Global sequence sort(index)
-    provider: {
-      id: "openai",
-      providerName: "OpenAI",
-      providerType: "openai",
-      sorted: 1, // 这里是固定的，确保顺序与之前内置的版本一致
-    },
-  })),
-  ...openaiModels.map((name) => ({
-    name,
-    available: true,
-    sorted: seq++,
-    provider: {
-      id: "azure",
-      providerName: "Azure",
-      providerType: "azure",
-      sorted: 2,
-    },
-  })),
-  ...googleModels.map((name) => ({
-    name,
-    available: true,
-    sorted: seq++,
-    provider: {
-      id: "google",
-      providerName: "Google",
-      providerType: "google",
-      sorted: 3,
-    },
-  })),
-  ...anthropicModels.map((name) => ({
-    name,
-    available: true,
-    sorted: seq++,
-    provider: {
-      id: "anthropic",
-      providerName: "Anthropic",
-      providerType: "anthropic",
-      sorted: 4,
-    },
-  })),
-  ...baiduModels.map((name) => ({
-    name,
-    available: true,
-    sorted: seq++,
-    provider: {
-      id: "baidu",
-      providerName: "Baidu",
-      providerType: "baidu",
-      sorted: 5,
-    },
-  })),
-  ...bytedanceModels.map((name) => ({
-    name,
-    available: true,
-    sorted: seq++,
-    provider: {
-      id: "bytedance",
-      providerName: "ByteDance",
-      providerType: "bytedance",
-      sorted: 6,
-    },
-  })),
-  ...alibabaModes.map((name) => ({
-    name,
-    available: true,
-    sorted: seq++,
-    provider: {
-      id: "alibaba",
-      providerName: "Alibaba",
-      providerType: "alibaba",
-      sorted: 7,
-    },
-  })),
-  ...tencentModels.map((name) => ({
-    name,
-    available: true,
-    sorted: seq++,
-    provider: {
-      id: "tencent",
-      providerName: "Tencent",
-      providerType: "tencent",
-      sorted: 8,
-    },
-  })),
-  ...moonshotModes.map((name) => ({
-    name,
-    available: true,
-    sorted: seq++,
-    provider: {
-      id: "moonshot",
-      providerName: "Moonshot",
-      providerType: "moonshot",
-      sorted: 9,
-    },
-  })),
-  ...iflytekModels.map((name) => ({
-    name,
-    available: true,
-    sorted: seq++,
-    provider: {
-      id: "iflytek",
-      providerName: "Iflytek",
-      providerType: "iflytek",
-      sorted: 10,
-    },
-  })),
-  ...xAIModes.map((name) => ({
-    name,
-    available: true,
-    sorted: seq++,
-    provider: {
-      id: "xai",
-      providerName: "XAI",
-      providerType: "xai",
-      sorted: 11,
-    },
-  })),
-  ...chatglmModels.map((name) => ({
-    name,
-    available: true,
-    sorted: seq++,
-    provider: {
-      id: "chatglm",
-      providerName: "ChatGLM",
-      providerType: "chatglm",
-      sorted: 12,
-    },
-  })),
-  ...deepseekModels.map((name) => ({
-    name,
-    available: true,
-    sorted: seq++,
-    provider: {
-      id: "deepseek",
-      providerName: "DeepSeek",
-      providerType: "deepseek",
-      sorted: 13,
-    },
-  })),
-  ...siliconflowModels.map((name) => ({
-    name,
-    available: true,
-    sorted: seq++,
-    provider: {
-      id: "siliconflow",
-      providerName: "SiliconFlow",
-      providerType: "siliconflow",
-      sorted: 14,
-    },
-  })),
-] as const;
+interface Model {
+  name: string;
+  available: boolean;
+  sorted: number;
+  provider: {
+    id: string;
+    providerName: string;
+    providerType: string;
+    sorted: number;
+  };
+}
+
+interface OpenRouterModel {
+  id: string;
+  name: string;
+  // 其他可能的字段...
+}
+
+// 获取 OpenRouter 的免费模型
+async function fetchFreeModels(): Promise<Model[]> {
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/models');
+    const data = await response.json();
+
+    const freeModels: Model[] = [];
+
+    for (const model of data.data) {
+      if (model.id.includes('free')) {
+        freeModels.push({
+          name: model.name.slice(0, -7), // 去掉最后7个字符
+          available: true,
+          sorted: seq++,
+          provider: {
+            id: "openrouter",
+            providerName: "OpenRouter",
+            providerType: "openrouter",
+            sorted:  seq++, // 固定顺序
+          },
+        });
+      }
+    }
+
+    return freeModels;
+  } catch (error) {
+    console.error('Error fetching models:', error);
+    return []; // 返回空数组作为降级处理
+  }
+}
+
+// 使用示例
+(async () => {
+  const DEFAULT_MODELS = await fetchFreeModels();
+})();
+
+// export const DEFAULT_MODELS = [
+//   ...openaiModels.map((name) => ({
+//     name,
+//     available: true,
+//     sorted: seq++, // Global sequence sort(index)
+//     provider: {
+//       id: "openai",
+//       providerName: "OpenAI",
+//       providerType: "openai",
+//       sorted: 1, // 这里是固定的，确保顺序与之前内置的版本一致
+//     },
+//   })),
+//   ...openaiModels.map((name) => ({
+//     name,
+//     available: true,
+//     sorted: seq++,
+//     provider: {
+//       id: "azure",
+//       providerName: "Azure",
+//       providerType: "azure",
+//       sorted: 2,
+//     },
+//   })),
+//   ...googleModels.map((name) => ({
+//     name,
+//     available: true,
+//     sorted: seq++,
+//     provider: {
+//       id: "google",
+//       providerName: "Google",
+//       providerType: "google",
+//       sorted: 3,
+//     },
+//   })),
+//   ...anthropicModels.map((name) => ({
+//     name,
+//     available: true,
+//     sorted: seq++,
+//     provider: {
+//       id: "anthropic",
+//       providerName: "Anthropic",
+//       providerType: "anthropic",
+//       sorted: 4,
+//     },
+//   })),
+//   ...baiduModels.map((name) => ({
+//     name,
+//     available: true,
+//     sorted: seq++,
+//     provider: {
+//       id: "baidu",
+//       providerName: "Baidu",
+//       providerType: "baidu",
+//       sorted: 5,
+//     },
+//   })),
+//   ...bytedanceModels.map((name) => ({
+//     name,
+//     available: true,
+//     sorted: seq++,
+//     provider: {
+//       id: "bytedance",
+//       providerName: "ByteDance",
+//       providerType: "bytedance",
+//       sorted: 6,
+//     },
+//   })),
+//   ...alibabaModes.map((name) => ({
+//     name,
+//     available: true,
+//     sorted: seq++,
+//     provider: {
+//       id: "alibaba",
+//       providerName: "Alibaba",
+//       providerType: "alibaba",
+//       sorted: 7,
+//     },
+//   })),
+//   ...tencentModels.map((name) => ({
+//     name,
+//     available: true,
+//     sorted: seq++,
+//     provider: {
+//       id: "tencent",
+//       providerName: "Tencent",
+//       providerType: "tencent",
+//       sorted: 8,
+//     },
+//   })),
+//   ...moonshotModes.map((name) => ({
+//     name,
+//     available: true,
+//     sorted: seq++,
+//     provider: {
+//       id: "moonshot",
+//       providerName: "Moonshot",
+//       providerType: "moonshot",
+//       sorted: 9,
+//     },
+//   })),
+//   ...iflytekModels.map((name) => ({
+//     name,
+//     available: true,
+//     sorted: seq++,
+//     provider: {
+//       id: "iflytek",
+//       providerName: "Iflytek",
+//       providerType: "iflytek",
+//       sorted: 10,
+//     },
+//   })),
+//   ...xAIModes.map((name) => ({
+//     name,
+//     available: true,
+//     sorted: seq++,
+//     provider: {
+//       id: "xai",
+//       providerName: "XAI",
+//       providerType: "xai",
+//       sorted: 11,
+//     },
+//   })),
+//   ...chatglmModels.map((name) => ({
+//     name,
+//     available: true,
+//     sorted: seq++,
+//     provider: {
+//       id: "chatglm",
+//       providerName: "ChatGLM",
+//       providerType: "chatglm",
+//       sorted: 12,
+//     },
+//   })),
+//   ...deepseekModels.map((name) => ({
+//     name,
+//     available: true,
+//     sorted: seq++,
+//     provider: {
+//       id: "deepseek",
+//       providerName: "DeepSeek",
+//       providerType: "deepseek",
+//       sorted: 13,
+//     },
+//   })),
+//   ...siliconflowModels.map((name) => ({
+//     name,
+//     available: true,
+//     sorted: seq++,
+//     provider: {
+//       id: "siliconflow",
+//       providerName: "SiliconFlow",
+//       providerType: "siliconflow",
+//       sorted: 14,
+//     },
+//   })),
+// ] as const;
 
 export const CHAT_PAGE_SIZE = 15;
 export const MAX_RENDER_MSG_COUNT = 45;
