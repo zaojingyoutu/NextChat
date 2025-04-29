@@ -63,7 +63,7 @@ const DEFAULT_ACCESS_STATE = {
   accessCode: "",
   useCustomConfig: false,
 
-  provider: ServiceProvider.OpenAI,
+  provider: ServiceProvider.Google,
 
   // openai
   openaiUrl: DEFAULT_OPENAI_URL,
@@ -139,7 +139,7 @@ const DEFAULT_ACCESS_STATE = {
   disableGPT4: false,
   disableFastLink: false,
   customModels: "",
-  defaultModel: "",
+  defaultModel: "gemini-1.5-flash@Google",
   visionModels: "",
 
   // tts config
